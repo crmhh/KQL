@@ -1,0 +1,6 @@
+// Get Risk Events with unfamiliar features
+AADUserRiskEvents
+| where TimeGenerated between (ago(90d)..now())
+| where RiskEventType == ```unfamiliarFeatures```
+| project UserPrincipalName, ActivityDateTime, DetectedDateTime, TimeGenerated, RiskDetail, RiskEventType, SourceSystem, Type, Activity
+| order by TimeGenerated desc 
