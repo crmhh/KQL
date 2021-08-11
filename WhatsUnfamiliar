@@ -1,0 +1,53 @@
+//save the query as function and use it eg. WhatsUnfamiliar("user@domain.com",todatetime('2021-08-06'))
+//let AffectedUser = "user@domain.com";
+//let detectiontime = todatetime('2021-08-04T03:26:47Z');
+let endtime = detectiontime - 1d;
+let starttime = detectiontime - 180d;
+let FamiliarLogins =
+SigninLogs
+| where UserPrincipalName == AffectedUser
+| where TimeGenerated between (startofday(starttime)..startofday(endtime));
+let FamiliarCountry = FamiliarLogins
+| summarize count() by tostring(LocationDetails.countryOrRegion);
+let FamiliarBrowser = FamiliarLogins
+| summarize count() by tostring(DeviceDetail.browser);
+let FamiliarOS = FamiliarLogins
+| summarize count() by tostring(DeviceDetail.operatingSystem);
+let FamiliarUA = FamiliarLogins
+| summarize count() by tostring(UserAgent);
+let FamiliarCity = FamiliarLogins
+| summarize count() by tostring(LocationDetails.city);
+let UnfamiliarSessionId = AADUserRiskEvents
+| where RiskEventType == ```unfamiliarFeatures```
+| where UserPrincipalName == AffectedUser
+| project CorrelationId;
+let UnfamiliarSession = SigninLogs
+| where TimeGenerated >= endtime
+| where CorrelationId in (UnfamiliarSessionId)
+| extend city_ = tostring(LocationDetails.city)
+| extend countryOrRegion_ = tostring(LocationDetails.countryOrRegion)
+| extend browser_ = tostring(DeviceDetail.browser)
+| extend operatingSystem_ = tostring(DeviceDetail.operatingSystem)
+| distinct city_, countryOrRegion_, browser_, operatingSystem_, UserAgent;
+UnfamiliarSession
+| extend newcountry = case(
+    countryOrRegion_ in (FamiliarCountry), "False",
+    countryOrRegion_
+    )
+| extend newcity = case(
+    countryOrRegion_ in (FamiliarCity), "False",
+    city_
+    )
+| extend newbrowser = case(
+    browser_ in (FamiliarBrowser), "False",
+    browser_
+    )
+| extend newOS = case(
+    operatingSystem_ in (FamiliarOS), "False",
+    operatingSystem_
+    )
+| extend newUA = case(
+    UserAgent in (FamiliarUA), "False",
+    UserAgent
+    )
+| project newbrowser, newcountry, newOS, newUA, newcity
