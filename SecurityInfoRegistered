@@ -1,0 +1,6 @@
+AuditLogs 
+| where ActivityDisplayName == "User registered security info"
+| extend userPrincipalName_ = tostring(TargetResources[0].userPrincipalName)
+| distinct userPrincipalName_
+| where userPrincipalName_ endswith "de"
+| summarize count()
