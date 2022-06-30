@@ -1,0 +1,8 @@
+AuditLogs 
+| where Identity <> "Azure Credential Configuration Endpoint Service"
+| where parse_json(tostring(TargetResources[0].modifiedProperties))[0].displayName == "StrongAuthenticationMethod"
+| where parse_json(tostring(parse_json(tostring(TargetResources[0].modifiedProperties))[0].newValue)) == "[]"
+| extend inintuserPrincipalName_ = tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)
+| extend targetuserPrincipalName_ = tostring(TargetResources[0].userPrincipalName)
+| distinct inintuserPrincipalName_,targetuserPrincipalName_
+| summarize count()
