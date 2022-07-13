@@ -1,0 +1,8 @@
+AuditLogs
+| where ActivityDisplayName contains "Add Member to group"
+| extend userPrincipalName_ = tostring(TargetResources[0].userPrincipalName)
+| extend LogicApp = tostring(parse_json(tostring(InitiatedBy.app)).displayName)
+| where LogicApp endswith "_ManagedGroupsForCARollOut"
+| project LogicApp, userPrincipalName_
+| summarize NewMembers = count() by LogicApp 
+| sort by LogicApp
