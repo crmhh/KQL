@@ -1,6 +1,8 @@
 AuditLogs 
 | where ActivityDisplayName == "User registered security info"
+| where TimeGenerated >= datetime(2022-08-29 06:00:00Z)
 | extend userPrincipalName_ = tostring(TargetResources[0].userPrincipalName)
-| distinct userPrincipalName_
-| where userPrincipalName_ endswith "de"
-| summarize count()
+| where ResultDescription startswith "User registered"
+| distinct userPrincipalName_, ResultDescription
+| summarize count() by ResultDescription
+| sort by count_ desc
