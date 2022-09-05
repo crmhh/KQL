@@ -1,0 +1,6 @@
+SigninLogs
+| where TimeGenerated >= datetime(2022-08-29 06:00:00Z)
+| where ResultType == "50072"
+| distinct UserPrincipalName
+| summarize count()
+
