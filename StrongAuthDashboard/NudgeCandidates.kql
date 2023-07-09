@@ -1,0 +1,9 @@
+let AllUser = UserGroupCollection_CL
+| where AuthMethod_s in ("#microsoft.graph.phoneAuthenticationMethod");
+let UserWithAuthenticator = AllUser
+| where AuthMethod_s in ("#microsoft.graph.microsoftAuthenticatorAuthenticationMethod", "#microsoft.graph.softwareOathAuthenticationMethod")
+| distinct upn_s;
+AllUser 
+| join kind=leftanti UserWithAuthenticator on upn_s
+| distinct upn_s
+| summarize count()
